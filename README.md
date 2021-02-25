@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/adam-hanna/jwt-auth.svg?branch=master)](https://travis-ci.org/adam-hanna/jwt-auth) [![Coverage Status](https://coveralls.io/repos/github/adam-hanna/jwt-auth/badge.svg?branch=master)](https://coveralls.io/github/adam-hanna/jwt-auth?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/adam-hanna/jwt-auth)](https://goreportcard.com/report/github.com/adam-hanna/jwt-auth) [![GoDoc](https://godoc.org/github.com/adam-hanna/jwt-auth/jwt?status.svg)](https://godoc.org/github.com/adam-hanna/jwt-auth/jwt)
 
 # jwt-auth
-jwt auth middleware in goLang
+jwt auth middleware in goLang.
+
+If you're interested in using sessions, checkout my [sessions library](https://github.com/adam-hanna/sessions)!
 
 **README Contents:**
 
@@ -80,9 +82,8 @@ It is important to understand the objective of this auth architecture. It certai
 1. Protection of non-critical api's (e.g. not meant for financial, healthcare, gov't, etc. services)
 2. Stateless
 3. User sessions
-4. XSS protection
-5. CSRF protection
-6. Web and/or mobile
+4. CSRF protection
+5. Web and/or mobile
 
 ## Design
 The design of this auth system is based around the three major components, listed below.

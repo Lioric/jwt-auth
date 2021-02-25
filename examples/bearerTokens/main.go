@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./randomStrings"
 	"./templates"
-	"github.com/adam-hanna/jwt-auth/jwt"
+	"github.com/Lioric/jwt-auth/jwt"
+	"github.com/adam-hanna/randomstrings"
 
 	"encoding/json"
 	"log"

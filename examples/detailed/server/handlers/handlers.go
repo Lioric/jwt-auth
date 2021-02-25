@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"github.com/justinas/alice"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/justinas/alice"
+
 	"../../db"
 	"../templates"
-	"github.com/adam-hanna/jwt-auth/jwt"
+	"github.com/Lioric/jwt-auth/jwt"
 )
 
 var restrictedRoute jwt.Auth
