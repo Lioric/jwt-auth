@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	jwtGo "github.com/dgrijalva/jwt-go"
+	jwtGo "github.com/form3tech-oss/jwt-go"
 )
 
 type jwtToken struct {

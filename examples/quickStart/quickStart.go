@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/adam-hanna/jwt-auth/jwt"
+	"github.com/Lioric/jwt-auth/jwt"
 
 	"log"
 	"net/http"

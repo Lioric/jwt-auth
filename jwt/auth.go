@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	jwtGo "github.com/dgrijalva/jwt-go"
+	jwtGo "github.com/form3tech-oss/jwt-go"
 )
 
 // Auth is a middleware that provides jwt based authentication.
@@ -272,7 +272,7 @@ func (a *Auth) Handler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Process the request. If it returns an error,
 		// that indicates the request should not continue.
-		jwtErr := a.Process(w, r)
+		_, jwtErr := a.Process(w, r)
 		var j jwtError
 
 		// If there was an error, do not continue.
@@ -302,7 +302,7 @@ func (a *Auth) HandlerFunc(fn http.HandlerFunc) http.Handler {
 
 // HandlerFuncWithNext is a special implementation for Negroni, but could be used elsewhere.
 func (a *Auth) HandlerFuncWithNext(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	jwtErr := a.Process(w, r)
+	_, jwtErr := a.Process(w, r)
 	var j jwtError
 
 	// If there was an error, do not call next.
@@ -320,22 +320,22 @@ func (a *Auth) HandlerFuncWithNext(w http.ResponseWriter, r *http.Request, next 
 }
 
 // Process runs the actual checks and returns an error if the middleware chain should stop.
-func (a *Auth) Process(w http.ResponseWriter, r *http.Request) *jwtError {
+func (a *Auth) Process(w http.ResponseWriter, r *http.Request) (ClaimsType, *jwtError) {
 	// cookies aren't included with options, so simply pass through
 	if r.Method == "OPTIONS" {
 		a.myLog("Method is OPTIONS")
-		return nil
+		return ClaimsType{}, nil
 	}
 
 	// grab the credentials from the request
 	var c credentials
 	if err := a.buildCredentialsFromRequest(r, &c); err != nil {
-		return newJwtError(err, 500)
+		return ClaimsType{}, newJwtError(err, 500)
 	}
 
 	// check the credential's validity; updating expiry's if necessary and/or allowed
 	if err := c.validateAndUpdateCredentials(); err != nil {
-		return newJwtError(err, 500)
+		return ClaimsType{}, newJwtError(err, 500)
 	}
 
 	a.myLog("Successfully checked / refreshed jwts")
@@ -344,11 +344,11 @@ func (a *Auth) Process(w http.ResponseWriter, r *http.Request) *jwtError {
 	// And tokens have been refreshed if need-be
 	if !a.options.VerifyOnlyServer {
 		if err := a.setCredentialsOnResponseWriter(w, &c); err != nil {
-			return newJwtError(err, 500)
+			return ClaimsType{}, newJwtError(err, 500)
 		}
 	}
 
-	return nil
+	return *c.AuthToken.Token.Claims.(*ClaimsType), nil
 }
 
 // IssueNewTokens : and also modify create refresh and auth token functions!
