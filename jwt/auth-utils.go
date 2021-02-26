@@ -105,6 +105,7 @@ func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credenti
 			// Expires:  time.Now().Add(a.options.AuthTokenValidTime),
 			HttpOnly: true,
 			Secure:   !a.options.IsDevEnv,
+			SameSite: http.SameSiteStrictMode,
 		}
 		http.SetCookie(w, &authCookie)
 
@@ -116,9 +117,22 @@ func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credenti
 				Path:     "/",
 				HttpOnly: true,
 				Secure:   !a.options.IsDevEnv,
+				SameSite: http.SameSiteStrictMode,
 			}
 			http.SetCookie(w, &refreshCookie)
 		}
+
+		csrfCookie := http.Cookie{
+			Name:     a.options.CSRFTokenName,
+			Value:    c.CsrfString,
+			Expires:  time.Now().Add(a.options.RefreshTokenValidTime),
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, &csrfCookie)
+
 	}
 
 	authTokenClaims, ok := c.AuthToken.Token.Claims.(*ClaimsType)
