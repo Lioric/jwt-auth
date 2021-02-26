@@ -50,7 +50,7 @@ func (a *Auth) extractTokenStringsFromReq(r *http.Request) (string, string, *jwt
 
 func (a *Auth) extractCsrfStringFromReq(r *http.Request) (string, *jwtError) {
 	csrfCookie, err := r.Cookie(a.options.CSRFTokenName)
-	if err == http.nil && csrfCookie != "" {
+	if err == nil && csrfCookie != "" {
 		return csrfCookie
 	}
 

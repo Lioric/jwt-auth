@@ -392,9 +392,10 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 			Name:     a.options.AuthTokenName,
 			Value:    "",
 			Expires:  time.Now().Add(-1000 * time.Hour),
-			Path:     "/"
+			Path:     "/",
 			HttpOnly: true,
 			Secure:   !a.options.IsDevEnv,
+			SameSite: http.SameSiteStrictMode,
 		}
 
 		http.SetCookie(w, &authCookie)
@@ -403,9 +404,10 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 			Name:     a.options.RefreshTokenName,
 			Value:    "",
 			Expires:  time.Now().Add(-1000 * time.Hour),
-			Path:     "/"
+			Path:     "/",
 			HttpOnly: true,
 			Secure:   !a.options.IsDevEnv,
+			SameSite: http.SameSiteStrictMode,
 		}
 
 		http.SetCookie(w, &refreshCookie)
@@ -416,7 +418,7 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 			Expires:  time.Now().Add(-1000 * time.Hour),
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   !a.options.IsDevEnv,
 			SameSite: http.SameSiteStrictMode,
 		}
 
