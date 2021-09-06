@@ -425,8 +425,10 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 		http.SetCookie(w, &csrfCookie)
 	}
 
-	refreshTokenClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
-	a.revokeRefreshToken(refreshTokenClaims.StandardClaims.Id)
+	if c.RefreshToken {
+		refreshTokenClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
+		a.revokeRefreshToken(refreshTokenClaims.StandardClaims.Id)
+	}
 
 	setHeader(w, a.options.CSRFTokenName, "")
 	setHeader(w, "Auth-Expiry", strconv.FormatInt(time.Now().Add(-1000*time.Hour).Unix(), 10))
