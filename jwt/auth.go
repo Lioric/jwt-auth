@@ -425,7 +425,7 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 		http.SetCookie(w, &csrfCookie)
 	}
 
-	if c.RefreshToken {
+	if c.RefreshToken != nil {
 		refreshTokenClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
 		a.revokeRefreshToken(refreshTokenClaims.StandardClaims.Id)
 	}
