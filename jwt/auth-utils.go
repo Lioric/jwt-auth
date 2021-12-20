@@ -104,10 +104,10 @@ func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credenti
 		// tokens are in cookies
 		// note: don't use an "Expires" in auth cookies bc browsers won't send expired cookies?
 		authCookie := http.Cookie{
-			Name:  a.options.AuthTokenName,
-			Value: authTokenString,
-			Path:  "/",
-			// Expires:  time.Now().Add(a.options.AuthTokenValidTime),
+			Name:     a.options.AuthTokenName,
+			Value:    authTokenString,
+			Path:     "/",
+			Expires:  time.Now().Add(a.options.AuthTokenValidTime),
 			HttpOnly: true,
 			Secure:   !a.options.IsDevEnv,
 			SameSite: http.SameSiteStrictMode,
