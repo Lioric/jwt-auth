@@ -60,7 +60,7 @@ func (a *Auth) extractCsrfStringFromReq(r *http.Request) (string, *jwtError) {
 	// 	return csrfString, nil
 	// }
 
-	csrfString = r.Header.Get(a.options.CSRFTokenName)
+	csrfString := r.Header.Get(a.options.CSRFTokenName)
 	if csrfString != "" {
 		return csrfString, nil
 	}
