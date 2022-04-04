@@ -49,16 +49,16 @@ func (a *Auth) extractTokenStringsFromReq(r *http.Request) (string, string, *jwt
 }
 
 func (a *Auth) extractCsrfStringFromReq(r *http.Request) (string, *jwtError) {
-	csrfCookie, _ := r.Cookie(a.options.CSRFTokenName)
-	if csrfCookie != nil {
-		return csrfCookie.Value, nil
-	}
+	// csrfCookie, _ := r.Cookie(a.options.CSRFTokenName)
+	// if csrfCookie != nil {
+	// 	return csrfCookie.Value, nil
+	// }
 
-	csrfString := r.FormValue(a.options.CSRFTokenName)
+	// csrfString := r.FormValue(a.options.CSRFTokenName)
 
-	if csrfString != "" {
-		return csrfString, nil
-	}
+	// if csrfString != "" {
+	// 	return csrfString, nil
+	// }
 
 	csrfString = r.Header.Get(a.options.CSRFTokenName)
 	if csrfString != "" {
@@ -104,10 +104,10 @@ func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credenti
 		// tokens are in cookies
 		// note: don't use an "Expires" in auth cookies bc browsers won't send expired cookies?
 		authCookie := http.Cookie{
-			Name:     a.options.AuthTokenName,
-			Value:    authTokenString,
-			Path:     "/",
-			Expires:  time.Now().Add(a.options.AuthTokenValidTime),
+			Name:  a.options.AuthTokenName,
+			Value: authTokenString,
+			Path:  "/",
+			// Expires:  time.Now().Add(a.options.AuthTokenValidTime),
 			HttpOnly: true,
 			Secure:   !a.options.IsDevEnv,
 			SameSite: http.SameSiteStrictMode,
@@ -127,16 +127,16 @@ func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credenti
 			http.SetCookie(w, &refreshCookie)
 		}
 
-		csrfCookie := http.Cookie{
-			Name:     a.options.CSRFTokenName,
-			Value:    c.CsrfString,
-			Expires:  time.Now().Add(a.options.RefreshTokenValidTime),
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
-		}
-		http.SetCookie(w, &csrfCookie)
+		// csrfCookie := http.Cookie{
+		// 	Name:     a.options.CSRFTokenName,
+		// 	Value:    c.CsrfString,
+		// 	Expires:  time.Now().Add(a.options.RefreshTokenValidTime),
+		// 	Path:     "/",
+		// 	HttpOnly: true,
+		// 	Secure:   true,
+		// 	SameSite: http.SameSiteStrictMode,
+		// }
+		// http.SetCookie(w, &csrfCookie)
 
 	}
 

@@ -412,17 +412,17 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 
 		http.SetCookie(w, &refreshCookie)
 
-		csrfCookie := http.Cookie{
-			Name:     a.options.CSRFTokenName,
-			Value:    "",
-			Expires:  time.Now().Add(-1000 * time.Hour),
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   !a.options.IsDevEnv,
-			SameSite: http.SameSiteStrictMode,
-		}
+		// csrfCookie := http.Cookie{
+		// 	Name:     a.options.CSRFTokenName,
+		// 	Value:    "",
+		// 	Expires:  time.Now().Add(-1000 * time.Hour),
+		// 	Path:     "/",
+		// 	HttpOnly: true,
+		// 	Secure:   !a.options.IsDevEnv,
+		// 	SameSite: http.SameSiteStrictMode,
+		// }
 
-		http.SetCookie(w, &csrfCookie)
+		// http.SetCookie(w, &csrfCookie)
 	}
 
 	if c.RefreshToken != nil {
