@@ -104,7 +104,7 @@ func (c *credentials) validateCsrfStringAgainstCredentials() *jwtError {
 	// 	return newJwtError(errors.New("Cannot read token claims"), 500)
 	// }
 	if c.CsrfString != authTokenClaims.Csrf {
-		return newJwtError(errors.New("CSRF token doesn't match value in jwts"), 401)
+		return newJwtError(errors.New("CSRF token doesn't match value in auth token"), 401)
 	}
 
 	return nil
@@ -127,7 +127,12 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 
 	refreshTokenClaims, ok := c.RefreshToken.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("Cannot read token claims"), 500)
+		return newJwtError(errors.New("Cannot read refresh token claims"), 500)
+	}
+
+	// verify csrf value in refresh token
+	if c.CsrfString != refreshTokenClaims.Csrf {
+		return newJwtError(errors.New("CSRF token doesn't match value in refresh token"), 401)
 	}
 
 	// check if the refresh token has been revoked
@@ -166,12 +171,12 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 func (c *credentials) validateAndUpdateCredentials() *jwtError {
 	// first, check that the csrf token matches what's in the jwts
 	err := c.validateCsrfStringAgainstCredentials()
-	if err != nil {
-		return newJwtError(err, 500)
-	}
+	// if err != nil {
+	// 	return newJwtError(err, 500)
+	// }
 
 	// next, check the auth token in a stateless manner
-	if c.AuthToken.Token.Valid {
+	if err == nil && c.AuthToken.Token.Valid {
 		// auth token has not expired and is valid
 		c.myLog("Auth token has not expired and is valid")
 
@@ -200,8 +205,12 @@ func (c *credentials) validateAndUpdateCredentials() *jwtError {
 		return nil
 	} else if ve, ok := c.AuthToken.ParseErr.(*jwtGo.ValidationError); ok {
 		c.myLog("Auth token is not valid")
-		if ve.Errors&(jwtGo.ValidationErrorExpired) != 0 {
-			c.myLog("Auth token is expired")
+		if ve.Errors&(jwtGo.ValidationErrorExpired) != 0 || err.Type == 401 {
+			if err.Type == 401 {
+				c.myLog(err.Error())
+			} else {
+				c.myLog("Auth token is expired")
+			}
 			if !c.options.VerifyOnlyServer {
 				// attempt to update the tokens
 				err = c.updateAuthTokenFromRefreshToken()
