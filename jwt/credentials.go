@@ -132,7 +132,7 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 
 	// verify csrf value in refresh token
 	if c.CsrfString != refreshTokenClaims.Csrf {
-		return newJwtError(errors.New("CSRF token doesn't match value in refresh token"), 401)
+		return newJwtError(errors.New("C	SRF token doesn't match value in refresh token"), 401)
 	}
 
 	// check if the refresh token has been revoked
@@ -205,8 +205,9 @@ func (c *credentials) validateAndUpdateCredentials() *jwtError {
 		return nil
 	} else if ve, ok := c.AuthToken.ParseErr.(*jwtGo.ValidationError); ok {
 		c.myLog("Auth token is not valid")
-		if ve.Errors&(jwtGo.ValidationErrorExpired) != 0 || err.Type == 401 {
-			if err.Type == 401 {
+		if ve.Errors&(jwtGo.ValidationErrorExpired) != 0 || (err != nil && err.Type == 401) {
+			if err != nil && err.Type == 401 {
+				// csrf string is not present in Auth token
 				c.myLog(err.Error())
 			} else {
 				c.myLog("Auth token is expired")
