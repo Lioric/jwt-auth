@@ -137,6 +137,8 @@ func New(auth *Auth, o Options) error {
 	auth.revokeRefreshToken = TokenRevoker(defaultTokenRevoker)
 	auth.checkTokenId = TokenIdChecker(defaultCheckTokenId)
 
+	jwtGo.MarshalSingleStringAsArray = false
+
 	return nil
 }
 
