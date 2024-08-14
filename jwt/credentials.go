@@ -223,7 +223,7 @@ func (c *credentials) validateAndUpdateCredentials() *jwtError {
 		return nil
 	} else {
 		c.myLog("Auth token is not valid")
-		if errors.Is(err, jwtGo.ErrTokenExpired) || (err != nil && err.Type == 401) {
+		if errors.Is(err, jwtGo.ErrTokenExpired) || errors.Is(c.AuthToken.ParseErr, jwtGo.ErrTokenExpired) || (err != nil && err.Type == 401) {
 			if err != nil && err.Type == 401 {
 				// csrf string is not present in Auth token
 				c.myLog(err.Error())
