@@ -136,7 +136,7 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 
 	// verify csrf value in refresh token
 	if c.CsrfString != refreshTokenClaims.Csrf {
-		return newJwtError(errors.New("C	SRF token doesn't match value in refresh token"), 401)
+		return newJwtError(errors.New("CSRF token doesn't match value in refresh token"), 401)
 	}
 
 	// check if the refresh token has been revoked
