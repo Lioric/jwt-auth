@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	jwtGo "github.com/golang-jwt/jwt/v5"
 )
 
 // return is (authTokenString, refreshTokenString, err)
@@ -26,16 +28,16 @@ func (a *Auth) extractTokenStringsFromReq(r *http.Request) (string, string, *jwt
 	AuthCookie, authErr := r.Cookie(a.options.AuthTokenName)
 	if authErr == http.ErrNoCookie {
 		a.myLog("Unauthorized attempt! No auth cookie")
-		return "", "", newJwtError(errors.New("No auth cookie"), 401)
+		return "", "", newJwtError(errors.New("no auth cookie"), 401)
 	} else if authErr != nil {
 		// a.myLog(authErr)
-		return "", "", newJwtError(errors.New("Internal Server Error"), 500)
+		return "", "", newJwtError(errors.New("internal Server Error"), 500)
 	}
 
 	RefreshCookie, refreshErr := r.Cookie(a.options.RefreshTokenName)
 	if refreshErr != nil && refreshErr != http.ErrNoCookie {
 		a.myLog(refreshErr)
-		return "", "", newJwtError(errors.New("Internal Server Error"), 500)
+		return "", "", newJwtError(errors.New("internal Server Error"), 500)
 	}
 
 	if AuthCookie != nil {
@@ -69,7 +71,7 @@ func (a *Auth) extractCsrfStringFromReq(r *http.Request) (string, *jwtError) {
 	csrfString = strings.Replace(auth, "Bearer", "", 1)
 	csrfString = strings.Replace(csrfString, " ", "", -1)
 	if csrfString == "" {
-		return csrfString, newJwtError(errors.New("No CSRF string"), 401)
+		return csrfString, newJwtError(errors.New("no CSRF string"), 401)
 	}
 
 	return csrfString, nil
@@ -78,7 +80,7 @@ func (a *Auth) extractCsrfStringFromReq(r *http.Request) (string, *jwtError) {
 func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credentials) *jwtError {
 	var (
 		refreshTokenString string
-		refreshTokenClaims *ClaimsType
+		refreshTokenClaims *jwtGo.MapClaims
 	)
 
 	authTokenString, err := c.AuthToken.Token.SignedString(a.signKey)
@@ -140,25 +142,26 @@ func (a *Auth) setCredentialsOnResponseWriter(w http.ResponseWriter, c *credenti
 
 	}
 
-	authTokenClaims, ok := c.AuthToken.Token.Claims.(*ClaimsType)
+	authTokenClaims, ok := c.AuthToken.Token.Claims.(*jwtGo.MapClaims)
 	if !ok {
 		a.myLog("Cannot read auth token claims")
-		return newJwtError(errors.New("Cannot read token claims"), 500)
+		return newJwtError(errors.New("cannot read token claims"), 500)
 	}
 	if c.RefreshToken != nil && c.RefreshToken.Token != nil {
-		refreshTokenClaims, ok = c.RefreshToken.Token.Claims.(*ClaimsType)
+		refreshTokenClaims, ok = c.RefreshToken.Token.Claims.(*jwtGo.MapClaims)
 		if !ok {
 			a.myLog("Cannot read refresh token claims")
-			return newJwtError(errors.New("Cannot read token claims"), 500)
+			return newJwtError(errors.New("cannot read token claims"), 500)
 		}
 	}
 
 	w.Header().Set(a.options.CSRFTokenName, c.CsrfString)
 	// note @adam-hanna: this may not be correct when using a sep auth server?
 	//    							 bc it checks the request?
-	w.Header().Set("Auth-Expiry", strconv.FormatInt(authTokenClaims.StandardClaims.ExpiresAt, 10))
+	w.Header().Set("Auth-Expiry", strconv.FormatInt((*authTokenClaims)["exp"].(int64), 10))
+	// w.Header().Set("Auth-Expiry", strconv.FormatInt(authTokenClaims.StandardClaims.ExpiresAt, 10))
 	if refreshTokenClaims != nil {
-		w.Header().Set("Refresh-Expiry", strconv.FormatInt(refreshTokenClaims.StandardClaims.ExpiresAt, 10))
+		w.Header().Set("Refresh-Expiry", strconv.FormatInt((*refreshTokenClaims)["exp"].(int64), 10))
 	}
 
 	return nil
@@ -191,4 +194,17 @@ func (a *Auth) myLog(stoofs interface{}) {
 
 func setHeader(w http.ResponseWriter, header string, value string) {
 	w.Header().Set(header, value)
+}
+
+func GetClaimString(claims *jwtGo.MapClaims, key string) (string, *jwtError) {
+	raw, ok := (*claims)[key]
+	if ok == false {
+		return "", newJwtError(errors.New("claim entry not in claims map"), 500)
+	}
+	val, ok := raw.(string)
+	if ok == false {
+		return "", newJwtError(errors.New("claim entry is not of string type"), 500)
+	}
+
+	return val, nil
 }

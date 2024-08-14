@@ -5,7 +5,8 @@ import (
 	"testing"
 	"time"
 
-	jwtGo "github.com/form3tech-oss/jwt-go"
+	jwtGo "github.com/golang-jwt/jwt/v5"
+	// jwtGo "github.com/form3tech-oss/jwt-go"
 )
 
 var rsaTestTokenStrings = []struct {
