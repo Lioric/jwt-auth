@@ -28,6 +28,8 @@ type credentialsOptions struct {
 
 	VerifyOnlyServer bool
 
+	UpdateTokenClaims TokenClaimsGenerator
+
 	Debug bool
 }
 
@@ -49,6 +51,7 @@ func (a *Auth) buildCredentialsFromClaims(c *credentials, claims *ClaimsType) *j
 	c.options.CheckTokenId = a.checkTokenId
 	c.options.VerifyOnlyServer = a.options.VerifyOnlyServer
 	c.options.SigningMethodString = a.options.SigningMethodString
+	c.options.UpdateTokenClaims = a.options.UpdateTokenClaims
 	c.options.Debug = a.options.Debug
 
 	authClaims := *claims
@@ -78,6 +81,7 @@ func (a *Auth) buildCredentialsFromStrings(csrfString string, authTokenString st
 	c.options.CheckTokenId = a.checkTokenId
 	c.options.VerifyOnlyServer = a.options.VerifyOnlyServer
 	c.options.SigningMethodString = a.options.SigningMethodString
+	c.options.UpdateTokenClaims = a.options.UpdateTokenClaims
 	c.options.Debug = a.options.Debug
 
 	// Note: Don't check for errors because it will be done later
@@ -150,13 +154,27 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 
 			c.CsrfString = newCsrfString
 
-			err = c.AuthToken.updateTokenExpiryAndCsrf(newCsrfString)
-			if err != nil {
-				return newJwtError(err, 500)
-			}
+			claims := c.options.UpdateTokenClaims(refreshTokenClaims.Id, refreshTokenClaims.Subject)
 
-			err = c.RefreshToken.updateTokenExpiryAndCsrf(newCsrfString)
-			return err
+			authClaims := claims
+			authClaims.Csrf = newCsrfString
+			authClaims.StandardClaims.ExpiresAt = time.Now().Add(c.options.AuthTokenValidTime).Unix()
+			c.AuthToken = c.newTokenWithClaims(&authClaims, c.options.AuthTokenValidTime)
+
+			refreshClaimsClaims := claims
+			refreshClaimsClaims.Csrf = newCsrfString
+			refreshClaimsClaims.StandardClaims.ExpiresAt = time.Now().Add(c.options.RefreshTokenValidTime).Unix()
+			c.RefreshToken = c.newTokenWithClaims(&refreshClaimsClaims, c.options.RefreshTokenValidTime)
+
+			return nil
+
+			// err = c.AuthToken.updateTokenExpiryAndCsrf(newCsrfString)
+			// if err != nil {
+			// 	return newJwtError(err, 500)
+			// }
+
+			// err = c.RefreshToken.updateTokenExpiryAndCsrf(newCsrfString)
+			// return err
 		}
 
 		c.myLog("Refresh token is invalid")

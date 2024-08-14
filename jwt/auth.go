@@ -40,6 +40,7 @@ type Options struct {
 	AuthTokenName         string
 	RefreshTokenName      string
 	CSRFTokenName         string
+	CreateTokenClaims     TokenClaimsGenerator
 	Debug                 bool
 	IsDevEnv              bool
 }
@@ -62,6 +63,9 @@ type ClaimsType struct {
 	Csrf         string
 	CustomClaims map[string]interface{}
 }
+
+// Claims generator for issuing new tokens
+type TokenClaimsGenerator func(id string, subject string) ClaimsType
 
 func defaultTokenRevoker(tokenId string) error {
 	return nil
