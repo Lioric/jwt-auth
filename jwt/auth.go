@@ -65,7 +65,7 @@ type ClaimsType struct {
 }
 
 // Claims generator for issuing new tokens on refresh
-type TokenClaimsGenerator func(id string, subject string) ClaimsType
+type TokenClaimsGenerator func(claims *ClaimsType) ClaimsType
 
 func defaultTokenRevoker(tokenId string) error {
 	return nil

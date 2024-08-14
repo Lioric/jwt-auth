@@ -154,7 +154,7 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 
 			c.CsrfString = newCsrfString
 
-			claims := c.options.UpdateTokenClaims(refreshTokenClaims.Id, refreshTokenClaims.Subject)
+			claims := c.options.UpdateTokenClaims(refreshTokenClaims)
 
 			authClaims := claims
 			authClaims.Csrf = newCsrfString
