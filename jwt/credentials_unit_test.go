@@ -27,8 +27,8 @@ func TestBuildCredentialsFromClaims(t *testing.T) {
 	claims.CustomClaims["foo"] = "bar"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -71,8 +71,8 @@ func TestBuildCredentialsFromStrings(t *testing.T) {
 	refresh := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDc3JmIjoiIiwiQ3VzdG9tQ2xhaW1zIjp7ImZvbyI6ImJhciJ9fQ.6WgdB6Bt68zfgh-icPokRxoOUFp93q-FoQNPZ0V6pec"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -108,8 +108,8 @@ func TestValidateCsrfStringAgainstCredentials(t *testing.T) {
 	claims.CustomClaims["foo"] = "bar"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -153,8 +153,8 @@ func TestUpdateAuthTokenFromRefreshToken(t *testing.T) {
 	claims.CustomClaims["foo"] = "bar"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -188,7 +188,7 @@ func TestUpdateAuthTokenFromRefreshToken(t *testing.T) {
 
 	refreshClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
 
-	revokeErr := RevokeRefreshToken(refreshClaims.StandardClaims.Id)
+	revokeErr := RevokeRefreshToken(refreshClaims.RegisteredClaims.ID)
 	if revokeErr != nil {
 		t.Errorf("Unable to revoke refresh token; Err: %v", err)
 	}
@@ -198,7 +198,7 @@ func TestUpdateAuthTokenFromRefreshToken(t *testing.T) {
 		t.Errorf("Revoked tokens should not be used to update auth tokens; Err: %v", err)
 	}
 
-	delete(revokedTokens, refreshClaims.StandardClaims.Id)
+	delete(revokedTokens, refreshClaims.RegisteredClaims.ID)
 	err = c.updateAuthTokenFromRefreshToken()
 	if err != nil {
 		t.Errorf("Refresh token has been removed from the revoked list and should be allowed to update auth token; Err: %v", err)
@@ -219,8 +219,8 @@ func TestValidateAndUpdateCredentials(t *testing.T) {
 	claims.CustomClaims["foo"] = "bar"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -261,9 +261,9 @@ func TestValidateAndUpdateCredentials(t *testing.T) {
 	// now, expect everything to pass; no new tokens or csrf will be generated
 	// expiry updated
 	oldAuthClaimsCsrf := c.AuthToken.Token.Claims.(*ClaimsType).Csrf
-	oldAuthExpiry := c.AuthToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	oldAuthExpiry := c.AuthToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 	oldRefreshClaimsCsrf := c.RefreshToken.Token.Claims.(*ClaimsType).Csrf
-	oldRefreshExpiry := c.RefreshToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	oldRefreshExpiry := c.RefreshToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 
 	// need to sleep to check expiry time differences
 	duration := time.Duration(1) * time.Second // Pause for 1 seconds
@@ -274,9 +274,9 @@ func TestValidateAndUpdateCredentials(t *testing.T) {
 		t.Errorf("Could not update and refresh credentials; Err: %v", err)
 	}
 	newAuthClaimsCsrf := c.AuthToken.Token.Claims.(*ClaimsType).Csrf
-	newAuthExpiry := c.AuthToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	newAuthExpiry := c.AuthToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 	newRefreshClaimsCsrf := c.RefreshToken.Token.Claims.(*ClaimsType).Csrf
-	newRefreshExpiry := c.RefreshToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	newRefreshExpiry := c.RefreshToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 
 	if tempCsrf != c.CsrfString ||
 		oldAuthClaimsCsrf != newAuthClaimsCsrf ||
@@ -381,9 +381,9 @@ func TestValidateAndUpdateCredentials(t *testing.T) {
 	c.options.VerifyOnlyServer = false
 	tempCsrf = c.CsrfString
 	oldAuthClaimsCsrf = c.AuthToken.Token.Claims.(*ClaimsType).Csrf
-	oldAuthExpiry = c.AuthToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	oldAuthExpiry = c.AuthToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 	oldRefreshClaimsCsrf = c.RefreshToken.Token.Claims.(*ClaimsType).Csrf
-	oldRefreshExpiry = c.RefreshToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	oldRefreshExpiry = c.RefreshToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 
 	// need to sleep to check expiry time differences
 	duration = time.Duration(1) * time.Second // Pause for 1 seconds
@@ -394,9 +394,9 @@ func TestValidateAndUpdateCredentials(t *testing.T) {
 	}
 
 	newAuthClaimsCsrf = c.AuthToken.Token.Claims.(*ClaimsType).Csrf
-	newAuthExpiry = c.AuthToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	newAuthExpiry = c.AuthToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 	newRefreshClaimsCsrf = c.RefreshToken.Token.Claims.(*ClaimsType).Csrf
-	newRefreshExpiry = c.RefreshToken.Token.Claims.(*ClaimsType).StandardClaims.ExpiresAt
+	newRefreshExpiry = c.RefreshToken.Token.Claims.(*ClaimsType).RegisteredClaims.ExpiresAt
 
 	if tempCsrf == c.CsrfString ||
 		oldAuthClaimsCsrf == newAuthClaimsCsrf ||
@@ -407,10 +407,10 @@ func TestValidateAndUpdateCredentials(t *testing.T) {
 		t.Error("New csrf strings do not match in credentials")
 	}
 
-	if oldAuthExpiry == newAuthExpiry || (newAuthExpiry-oldAuthExpiry) <= 0 {
+	if oldAuthExpiry == newAuthExpiry || (newAuthExpiry.Unix()-oldAuthExpiry.Unix()) <= 0 {
 		t.Errorf("Expected auth expiry to be updated: old: %v; new: %v", oldAuthExpiry, newAuthExpiry)
 	}
-	if oldRefreshExpiry == newRefreshExpiry || (newRefreshExpiry-oldRefreshExpiry) <= 0 {
+	if oldRefreshExpiry == newRefreshExpiry || (newRefreshExpiry.Unix()-oldRefreshExpiry.Unix()) <= 0 {
 		t.Errorf("Expected refresh expiry to be updated: old: %v; new: %v", oldRefreshExpiry, newRefreshExpiry)
 	}
 }

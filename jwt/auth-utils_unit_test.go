@@ -13,8 +13,8 @@ import (
 func TestExtractTokenStringsFromReqCookies(t *testing.T) {
 	var a Auth
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 true,
@@ -60,8 +60,8 @@ func TestExtractTokenStringsFromReqCookies(t *testing.T) {
 func TestExtractTokenStringsFromReqTokens(t *testing.T) {
 	var a Auth
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		BearerTokens:          true,
@@ -94,8 +94,8 @@ func TestExtractTokenStringsFromReqTokens(t *testing.T) {
 func TestExtractCsrfStringFromReq(t *testing.T) {
 	var a Auth
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 true,
@@ -176,8 +176,8 @@ func TestSetCredentialsOnResponseWriterCookie(t *testing.T) {
 	refresh := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDc3JmIjoiIiwiQ3VzdG9tQ2xhaW1zIjp7ImZvbyI6ImJhciJ9fQ.6WgdB6Bt68zfgh-icPokRxoOUFp93q-FoQNPZ0V6pec"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -213,11 +213,11 @@ func TestSetCredentialsOnResponseWriterCookie(t *testing.T) {
 	if w.Header().Get(a.options.CSRFTokenName) != c.CsrfString {
 		t.Errorf("Response writer does not have correct csrf token; expected: %s; received: %s", c.CsrfString, w.Header().Get(a.options.CSRFTokenName))
 	}
-	if w.Header().Get("Auth-Expiry") != strconv.FormatInt(authTokenClaims.StandardClaims.ExpiresAt, 10) {
-		t.Errorf("Response writer does not have correct auth expiry info; expected %s; received: %s", strconv.FormatInt(authTokenClaims.StandardClaims.ExpiresAt, 10), w.Header().Get("Auth-Expiry"))
+	if w.Header().Get("Auth-Expiry") != strconv.FormatInt(authTokenClaims.RegisteredClaims.ExpiresAt.Unix(), 10) {
+		t.Errorf("Response writer does not have correct auth expiry info; expected %s; received: %s", strconv.FormatInt(authTokenClaims.RegisteredClaims.ExpiresAt.Unix(), 10), w.Header().Get("Auth-Expiry"))
 	}
-	if w.Header().Get("Refresh-Expiry") != strconv.FormatInt(refreshTokenClaims.StandardClaims.ExpiresAt, 10) {
-		t.Errorf("Response writer does not have correct auth expiry info; expected %s; received: %s", strconv.FormatInt(refreshTokenClaims.StandardClaims.ExpiresAt, 10), w.Header().Get("Refresh-Expiry"))
+	if w.Header().Get("Refresh-Expiry") != strconv.FormatInt(refreshTokenClaims.RegisteredClaims.ExpiresAt.Unix(), 10) {
+		t.Errorf("Response writer does not have correct auth expiry info; expected %s; received: %s", strconv.FormatInt(refreshTokenClaims.RegisteredClaims.ExpiresAt.Unix(), 10), w.Header().Get("Refresh-Expiry"))
 	}
 }
 
@@ -232,8 +232,8 @@ func TestSetCredentialsOnResponseWriterToken(t *testing.T) {
 	refresh := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDc3JmIjoiIiwiQ3VzdG9tQ2xhaW1zIjp7ImZvbyI6ImJhciJ9fQ.6WgdB6Bt68zfgh-icPokRxoOUFp93q-FoQNPZ0V6pec"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		BearerTokens:          true,
@@ -271,8 +271,8 @@ func TestBuildCredentialsFromRequest(t *testing.T) {
 	claims.CustomClaims["foo"] = "bar"
 
 	authErr := New(&a, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		Debug:                 false,
@@ -304,8 +304,8 @@ func TestBuildCredentialsFromRequest(t *testing.T) {
 	claims2.CustomClaims["foo"] = "bar"
 
 	authErr = New(&a2, Options{
-		SigningMethodString: "HS256",
-		HMACKey: []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
+		SigningMethodString:   "HS256",
+		HMACKey:               []byte(`#5K+¥¼ƒ~ew{¦Z³(æðTÉ(©„²ÒP.¿ÓûZ’ÒGï–Š´Ãwb="=.!r.OÀÍšõgÐ€£`),
 		RefreshTokenValidTime: 72 * time.Hour,
 		AuthTokenValidTime:    15 * time.Minute,
 		BearerTokens:          true,

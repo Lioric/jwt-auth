@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	jwtGo "github.com/form3tech-oss/jwt-go"
+	jwtGo "github.com/golang-jwt/jwt/v5"
 )
 
 type jwtToken struct {
@@ -33,7 +33,7 @@ func (c *credentials) buildTokenWithClaimsFromString(tokenString string, verifyK
 	token, err := jwtGo.ParseWithClaims(tokenString, &ClaimsType{}, func(token *jwtGo.Token) (interface{}, error) {
 		if token.Method != jwtGo.GetSigningMethod(c.options.SigningMethodString) {
 			c.myLog("Incorrect singing method on token")
-			return nil, errors.New("Incorrect singing method on token")
+			return nil, errors.New("incorrect singing method on token")
 		}
 		return verifyKey, nil
 	})
@@ -69,10 +69,11 @@ func (c *credentials) newTokenWithClaims(claims *ClaimsType, validTime time.Dura
 func (t *jwtToken) updateTokenExpiry() *jwtError {
 	tokenClaims, ok := t.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("Cannot read token claims"), 500)
+		return newJwtError(errors.New("cannot read token claims"), 500)
 	}
 
-	tokenClaims.StandardClaims.ExpiresAt = time.Now().Add(t.options.ValidTime).Unix()
+	tokenClaims.RegisteredClaims.ExpiresAt = jwtGo.NewNumericDate(time.Now().Add(t.options.ValidTime))
+	// tokenClaims.RegisteredClaims.ExpiresAt = jwtGo.NewNumericDate(time.Now().Add(t.options.ValidTime).Unix())
 
 	// update the token
 	t.Token = jwtGo.NewWithClaims(jwtGo.GetSigningMethod(t.options.SigningMethodString), tokenClaims)
@@ -83,7 +84,7 @@ func (t *jwtToken) updateTokenExpiry() *jwtError {
 func (t *jwtToken) updateTokenCsrf(csrfString string) *jwtError {
 	tokenClaims, ok := t.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("Cannot read token claims"), 500)
+		return newJwtError(errors.New("cannot read token claims"), 500)
 	}
 
 	tokenClaims.Csrf = csrfString
@@ -97,10 +98,10 @@ func (t *jwtToken) updateTokenCsrf(csrfString string) *jwtError {
 func (t *jwtToken) updateTokenExpiryAndCsrf(csrfString string) *jwtError {
 	tokenClaims, ok := t.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("Cannot read token claims"), 500)
+		return newJwtError(errors.New("cannot read token claims"), 500)
 	}
 
-	tokenClaims.StandardClaims.ExpiresAt = time.Now().Add(t.options.ValidTime).Unix()
+	tokenClaims.RegisteredClaims.ExpiresAt = jwtGo.NewNumericDate(time.Now().Add(t.options.ValidTime))
 	tokenClaims.Csrf = csrfString
 
 	// update the token

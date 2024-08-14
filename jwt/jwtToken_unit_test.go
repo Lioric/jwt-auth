@@ -2,10 +2,11 @@ package jwt
 
 import (
 	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
-	jwtGo "github.com/form3tech-oss/jwt-go"
+	jwtGo "github.com/golang-jwt/jwt/v5"
 )
 
 var rsaTestTokenStrings = []struct {
@@ -281,7 +282,7 @@ func TestBuildHSFromTokenStrings(t *testing.T) {
 }
 
 func TestBuildingRSAFromClaims(t *testing.T) {
-	signBytes, err := ioutil.ReadFile("test/priv.rsa")
+	signBytes, err := os.ReadFile("test/priv.rsa")
 	if err != nil {
 		t.Errorf("Unable to read RSA private key file: %v", err)
 	}
@@ -441,7 +442,7 @@ func TestUpdateTokenExpiry(t *testing.T) {
 		t.Errorf("Unable to read claims from HS token string at idx: %d; Claims: %v", i, tempToken.Token.Claims)
 	}
 
-	deltaT := tempTokenClaims.StandardClaims.ExpiresAt - tempTime
+	deltaT := tempTokenClaims.RegisteredClaims.ExpiresAt.Unix() - tempTime
 	if deltaT/int64(hsTestTokenStrings[i].validTime.Seconds()) > 1 {
 		t.Errorf("HS token time not updated correctly at idx: %d; Delta T: %d; Valid Time: %d", i, deltaT, hsTestTokenStrings[i].validTime.Nanoseconds())
 	}
@@ -511,7 +512,7 @@ func TestUpdateTokenExpiryAndCsrf(t *testing.T) {
 		t.Errorf("Unable to read claims from HS token string at idx: %d; Claims: %v", i, tempToken.Token.Claims)
 	}
 
-	deltaT := tempTokenClaims.StandardClaims.ExpiresAt - tempTime
+	deltaT := tempTokenClaims.RegisteredClaims.ExpiresAt.Unix() - tempTime
 	if deltaT/int64(hsTestTokenStrings[i].validTime.Seconds()) > 1 {
 		t.Errorf("HS token time not updated correctly at idx: %d; Delta T: %d; Valid Time: %d", i, deltaT, hsTestTokenStrings[i].validTime.Nanoseconds())
 	}

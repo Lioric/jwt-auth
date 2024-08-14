@@ -420,7 +420,7 @@ func TestNullifyTokens(t *testing.T) {
 
 	// finally, check to make sure the refresh token id is being revoked
 	refreshTokenClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
-	if a.checkTokenId(refreshTokenClaims.StandardClaims.Id) {
+	if a.checkTokenId(refreshTokenClaims.RegisteredClaims.ID) {
 		t.Error("Expected refresh token id to have been revoked")
 	}
 }

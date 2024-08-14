@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	jwtGo "github.com/form3tech-oss/jwt-go"
+	jwtGo "github.com/golang-jwt/jwt/v5"
 )
 
 // Auth is a middleware that provides jwt based authentication.
@@ -59,8 +59,8 @@ const (
 type ClaimsType struct {
 	// Standard claims are the standard jwt claims from the ietf standard
 	// https://tools.ietf.org/html/rfc7519
-	jwtGo.StandardClaims
-	Csrf         string
+	Csrf string `json:"csrf,omitempty"`
+	jwtGo.RegisteredClaims
 	CustomClaims map[string]interface{}
 }
 
@@ -84,12 +84,10 @@ type TokenIdChecker func(tokenId string) bool
 
 func defaultErrorHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Internal Server Error", 500)
-	return
 }
 
 func defaultUnauthorizedHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unauthorized", 401)
-	return
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 }
 
 // New constructs a new Auth instance with supplied options.
@@ -154,13 +152,13 @@ func (o *Options) buildSignAndVerifyKeys() (signKey interface{}, verifyKey inter
 
 	}
 
-	err = errors.New("Signing method string not recognized!")
+	err = errors.New("signing method string not recognized")
 	return
 }
 
 func (o *Options) buildHMACKeys() (signKey interface{}, verifyKey interface{}, err error) {
 	if len(o.HMACKey) == 0 {
-		err = errors.New("When using an HMAC-SHA signing method, please provide an HMACKey")
+		err = errors.New("when using an HMAC-SHA signing method, please provide an HMACKey")
 		return
 	}
 	if !o.VerifyOnlyServer {
@@ -177,11 +175,11 @@ func (o *Options) buildRSAKeys() (signKey interface{}, verifyKey interface{}, er
 
 	// check to make sure the provided options are valid
 	if o.PrivateKeyLocation == "" && !o.VerifyOnlyServer {
-		err = errors.New("Private key location is required!")
+		err = errors.New("private key location is required")
 		return
 	}
 	if o.PublicKeyLocation == "" {
-		err = errors.New("Public key location is required!")
+		err = errors.New("public key location is required")
 		return
 	}
 
@@ -217,11 +215,11 @@ func (o *Options) buildESKeys() (signKey interface{}, verifyKey interface{}, err
 
 	// check to make sure the provided options are valid
 	if o.PrivateKeyLocation == "" && !o.VerifyOnlyServer {
-		err = errors.New("Private key location is required!")
+		err = errors.New("private key location is required")
 		return
 	}
 	if o.PublicKeyLocation == "" {
-		err = errors.New("Public key location is required!")
+		err = errors.New("public key location is required")
 		return
 	}
 
@@ -359,7 +357,7 @@ func (a *Auth) Process(w http.ResponseWriter, r *http.Request) (ClaimsType, *jwt
 func (a *Auth) IssueNewTokens(w http.ResponseWriter, claims *ClaimsType) error {
 	if a.options.VerifyOnlyServer {
 		a.myLog("Server is not authorized to issue new tokens")
-		return errors.New("Server is not authorized to issue new tokens")
+		return errors.New("server is not authorized to issue new tokens")
 
 	}
 
@@ -431,7 +429,7 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 
 	if c.RefreshToken != nil {
 		refreshTokenClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
-		a.revokeRefreshToken(refreshTokenClaims.StandardClaims.Id)
+		a.revokeRefreshToken(refreshTokenClaims.RegisteredClaims.ID)
 	}
 
 	setHeader(w, a.options.CSRFTokenName, "")
