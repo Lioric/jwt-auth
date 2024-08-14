@@ -5,8 +5,7 @@ import (
 	"log"
 	"time"
 
-	jwtGo "github.com/golang-jwt/jwt/v5"
-	// jwtGo "github.com/form3tech-oss/jwt-go"
+	jwtGo "github.com/form3tech-oss/jwt-go"
 )
 
 type jwtToken struct {
@@ -31,17 +30,17 @@ func (c *credentials) buildTokenWithClaimsFromString(tokenString string, verifyK
 	// note @adam-hanna: should we be checking inputs? Especially the token string?
 	var newToken jwtToken
 
-	token, err := jwtGo.ParseWithClaims(tokenString, jwtGo.MapClaims{}, func(token *jwtGo.Token) (interface{}, error) {
+	token, err := jwtGo.ParseWithClaims(tokenString, &ClaimsType{}, func(token *jwtGo.Token) (interface{}, error) {
 		if token.Method != jwtGo.GetSigningMethod(c.options.SigningMethodString) {
 			c.myLog("Incorrect singing method on token")
-			return nil, errors.New("incorrect singing method on token")
+			return nil, errors.New("Incorrect singing method on token")
 		}
 		return verifyKey, nil
 	})
 
 	if token == nil {
 		token = new(jwtGo.Token)
-		token.Claims = new(jwtGo.MapClaims)
+		token.Claims = new(ClaimsType)
 		c.myLog("token is nil, set empty token (parse error=" + err.Error() + ")")
 	}
 
@@ -55,7 +54,7 @@ func (c *credentials) buildTokenWithClaimsFromString(tokenString string, verifyK
 	return &newToken
 }
 
-func (c *credentials) newTokenWithClaims(claims *jwtGo.MapClaims, validTime time.Duration) *jwtToken {
+func (c *credentials) newTokenWithClaims(claims *ClaimsType, validTime time.Duration) *jwtToken {
 	var newToken jwtToken
 
 	newToken.Token = jwtGo.NewWithClaims(jwtGo.GetSigningMethod(c.options.SigningMethodString), claims)
@@ -68,12 +67,12 @@ func (c *credentials) newTokenWithClaims(claims *jwtGo.MapClaims, validTime time
 }
 
 func (t *jwtToken) updateTokenExpiry() *jwtError {
-	tokenClaims, ok := t.Token.Claims.(*jwtGo.MapClaims)
+	tokenClaims, ok := t.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("cannot read token claims"), 500)
+		return newJwtError(errors.New("Cannot read token claims"), 500)
 	}
 
-	(*tokenClaims)["exp"] = time.Now().Add(t.options.ValidTime).Unix()
+	tokenClaims.StandardClaims.ExpiresAt = time.Now().Add(t.options.ValidTime).Unix()
 
 	// update the token
 	t.Token = jwtGo.NewWithClaims(jwtGo.GetSigningMethod(t.options.SigningMethodString), tokenClaims)
@@ -82,12 +81,12 @@ func (t *jwtToken) updateTokenExpiry() *jwtError {
 }
 
 func (t *jwtToken) updateTokenCsrf(csrfString string) *jwtError {
-	tokenClaims, ok := t.Token.Claims.(*jwtGo.MapClaims)
+	tokenClaims, ok := t.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("cannot read token claims"), 500)
+		return newJwtError(errors.New("Cannot read token claims"), 500)
 	}
 
-	(*tokenClaims)["csrf"] = csrfString
+	tokenClaims.Csrf = csrfString
 
 	// update the token
 	t.Token = jwtGo.NewWithClaims(jwtGo.GetSigningMethod(t.options.SigningMethodString), tokenClaims)
@@ -96,13 +95,13 @@ func (t *jwtToken) updateTokenCsrf(csrfString string) *jwtError {
 }
 
 func (t *jwtToken) updateTokenExpiryAndCsrf(csrfString string) *jwtError {
-	tokenClaims, ok := t.Token.Claims.(*jwtGo.MapClaims)
+	tokenClaims, ok := t.Token.Claims.(*ClaimsType)
 	if !ok {
-		return newJwtError(errors.New("cannot read token claims"), 500)
+		return newJwtError(errors.New("Cannot read token claims"), 500)
 	}
 
-	(*tokenClaims)["exp"] = time.Now().Add(t.options.ValidTime).Unix()
-	(*tokenClaims)["csrf"] = csrfString
+	tokenClaims.StandardClaims.ExpiresAt = time.Now().Add(t.options.ValidTime).Unix()
+	tokenClaims.Csrf = csrfString
 
 	// update the token
 	t.Token = jwtGo.NewWithClaims(jwtGo.GetSigningMethod(t.options.SigningMethodString), tokenClaims)

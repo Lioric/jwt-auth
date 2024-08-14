@@ -4,13 +4,11 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 	"strconv"
 	"time"
 
-	jwtGo "github.com/golang-jwt/jwt/v5"
-	// jwtGo "github.com/form3tech-oss/jwt-go"
+	jwtGo "github.com/form3tech-oss/jwt-go"
 )
 
 // Auth is a middleware that provides jwt based authentication.
@@ -58,18 +56,16 @@ const (
 )
 
 // ClaimsType : holds the claims encoded in the jwt
-type ClaimsType jwtGo.MapClaims
-
-// type ClaimsType struct {
-// 	// Standard claims are the standard jwt claims from the ietf standard
-// 	// https://tools.ietf.org/html/rfc7519
-// 	StandardClaims jwtGo.MapClaims
-// 	Csrf           string
-// 	CustomClaims   map[string]interface{}
-// }
+type ClaimsType struct {
+	// Standard claims are the standard jwt claims from the ietf standard
+	// https://tools.ietf.org/html/rfc7519
+	jwtGo.StandardClaims
+	Csrf         string
+	CustomClaims map[string]interface{}
+}
 
 // Claims generator for issuing new tokens on refresh
-type TokenClaimsGenerator func(claims *jwtGo.MapClaims) jwtGo.MapClaims
+type TokenClaimsGenerator func(claims *ClaimsType) ClaimsType
 
 func defaultTokenRevoker(tokenId string) error {
 	return nil
@@ -88,10 +84,12 @@ type TokenIdChecker func(tokenId string) bool
 
 func defaultErrorHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Internal Server Error", 500)
+	return
 }
 
 func defaultUnauthorizedHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	http.Error(w, "Unauthorized", 401)
+	return
 }
 
 // New constructs a new Auth instance with supplied options.
@@ -156,13 +154,13 @@ func (o *Options) buildSignAndVerifyKeys() (signKey interface{}, verifyKey inter
 
 	}
 
-	err = errors.New("signing method string not recognized")
+	err = errors.New("Signing method string not recognized!")
 	return
 }
 
 func (o *Options) buildHMACKeys() (signKey interface{}, verifyKey interface{}, err error) {
 	if len(o.HMACKey) == 0 {
-		err = errors.New("when using an HMAC-SHA signing method, please provide an HMACKey")
+		err = errors.New("When using an HMAC-SHA signing method, please provide an HMACKey")
 		return
 	}
 	if !o.VerifyOnlyServer {
@@ -179,17 +177,17 @@ func (o *Options) buildRSAKeys() (signKey interface{}, verifyKey interface{}, er
 
 	// check to make sure the provided options are valid
 	if o.PrivateKeyLocation == "" && !o.VerifyOnlyServer {
-		err = errors.New("private key location is required")
+		err = errors.New("Private key location is required!")
 		return
 	}
 	if o.PublicKeyLocation == "" {
-		err = errors.New("public key location is required")
+		err = errors.New("Public key location is required!")
 		return
 	}
 
 	// read the key files
 	if !o.VerifyOnlyServer {
-		signBytes, err = os.ReadFile(o.PrivateKeyLocation)
+		signBytes, err = ioutil.ReadFile(o.PrivateKeyLocation)
 		if err != nil {
 			return
 		}
@@ -200,7 +198,7 @@ func (o *Options) buildRSAKeys() (signKey interface{}, verifyKey interface{}, er
 		}
 	}
 
-	verifyBytes, err = os.ReadFile(o.PublicKeyLocation)
+	verifyBytes, err = ioutil.ReadFile(o.PublicKeyLocation)
 	if err != nil {
 		return
 	}
@@ -219,11 +217,11 @@ func (o *Options) buildESKeys() (signKey interface{}, verifyKey interface{}, err
 
 	// check to make sure the provided options are valid
 	if o.PrivateKeyLocation == "" && !o.VerifyOnlyServer {
-		err = errors.New("private key location is required")
+		err = errors.New("Private key location is required!")
 		return
 	}
 	if o.PublicKeyLocation == "" {
-		err = errors.New("public key location is required")
+		err = errors.New("Public key location is required!")
 		return
 	}
 
@@ -326,22 +324,22 @@ func (a *Auth) HandlerFuncWithNext(w http.ResponseWriter, r *http.Request, next 
 }
 
 // Process runs the actual checks and returns an error if the middleware chain should stop.
-func (a *Auth) Process(w http.ResponseWriter, r *http.Request) (jwtGo.MapClaims, *jwtError) {
+func (a *Auth) Process(w http.ResponseWriter, r *http.Request) (ClaimsType, *jwtError) {
 	// cookies aren't included with options, so simply pass through
 	if r.Method == "OPTIONS" {
 		a.myLog("Method is OPTIONS")
-		return jwtGo.MapClaims{}, nil
+		return ClaimsType{}, nil
 	}
 
 	// grab the credentials from the request
 	var c credentials
 	if err := a.buildCredentialsFromRequest(r, &c); err != nil {
-		return jwtGo.MapClaims{}, newJwtError(err, 500)
+		return ClaimsType{}, newJwtError(err, 500)
 	}
 
 	// check the credential's validity; updating expiry's if necessary and/or allowed
 	if err := c.validateAndUpdateCredentials(); err != nil {
-		return jwtGo.MapClaims{}, newJwtError(err, 500)
+		return ClaimsType{}, newJwtError(err, 500)
 	}
 
 	a.myLog("Successfully checked / refreshed jwts")
@@ -350,18 +348,18 @@ func (a *Auth) Process(w http.ResponseWriter, r *http.Request) (jwtGo.MapClaims,
 	// And tokens have been refreshed if need-be
 	if !a.options.VerifyOnlyServer {
 		if err := a.setCredentialsOnResponseWriter(w, &c); err != nil {
-			return jwtGo.MapClaims{}, newJwtError(err, 500)
+			return ClaimsType{}, newJwtError(err, 500)
 		}
 	}
 
-	return *c.AuthToken.Token.Claims.(*jwtGo.MapClaims), nil
+	return *c.AuthToken.Token.Claims.(*ClaimsType), nil
 }
 
 // IssueNewTokens : and also modify create refresh and auth token functions!
-func (a *Auth) IssueNewTokens(w http.ResponseWriter, claims *jwtGo.MapClaims) error {
+func (a *Auth) IssueNewTokens(w http.ResponseWriter, claims *ClaimsType) error {
 	if a.options.VerifyOnlyServer {
-		a.myLog("server is not authorized to issue new tokens")
-		return errors.New("server is not authorized to issue new tokens")
+		a.myLog("Server is not authorized to issue new tokens")
+		return errors.New("Server is not authorized to issue new tokens")
 
 	}
 
@@ -432,11 +430,8 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if c.RefreshToken != nil {
-		refreshTokenClaims := c.RefreshToken.Token.Claims.(*jwtGo.MapClaims)
-		id, ok := (*refreshTokenClaims)["id"].(string)
-		if ok {
-			a.revokeRefreshToken(id)
-		}
+		refreshTokenClaims := c.RefreshToken.Token.Claims.(*ClaimsType)
+		a.revokeRefreshToken(refreshTokenClaims.StandardClaims.Id)
 	}
 
 	setHeader(w, a.options.CSRFTokenName, "")
@@ -449,13 +444,13 @@ func (a *Auth) NullifyTokens(w http.ResponseWriter, r *http.Request) error {
 
 // GrabTokenClaims : extract the claims from the request
 // note: we always grab from the authToken
-func (a *Auth) GrabTokenClaims(r *http.Request) (jwtGo.MapClaims, error) {
+func (a *Auth) GrabTokenClaims(r *http.Request) (ClaimsType, error) {
 	var c credentials
 	err := a.buildCredentialsFromRequest(r, &c)
 	if err != nil {
 		a.myLog("Err grabbing credentials \n" + err.Error())
-		return jwtGo.MapClaims{}, errors.New(err.Error())
+		return ClaimsType{}, errors.New(err.Error())
 	}
 
-	return *c.AuthToken.Token.Claims.(*jwtGo.MapClaims), nil
+	return *c.AuthToken.Token.Claims.(*ClaimsType), nil
 }
