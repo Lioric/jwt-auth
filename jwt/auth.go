@@ -59,6 +59,7 @@ const (
 type ClaimsType struct {
 	// Standard claims are the standard jwt claims from the ietf standard
 	// https://tools.ietf.org/html/rfc7519
+	UID  string `json:"uid,omitempty"`
 	Csrf string `json:"csrf,omitempty"`
 	jwtGo.RegisteredClaims
 	CustomClaims map[string]interface{}
