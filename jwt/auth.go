@@ -75,13 +75,20 @@ func defaultTokenRevoker(tokenId string) error {
 // TokenRevoker : a type to revoke tokens
 type TokenRevoker func(tokenId string) error
 
-func defaultCheckTokenId(tokenId string) bool {
+func defaultCheckTokenId(tokenClaims *ClaimsType) bool {
 	// return true if the token id is valid (has not been revoked). False for otherwise
 	return true
 }
 
+// func defaultCheckTokenId(tokenId string) bool {
+// 	// return true if the token id is valid (has not been revoked). False for otherwise
+// 	return true
+// }
+
 // TokenIdChecker : a type to check tokens
-type TokenIdChecker func(tokenId string) bool
+type TokenIdChecker func(tokenClaims *ClaimsType) bool
+
+// type TokenIdChecker func(tokenId string) bool
 
 func defaultErrorHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Internal Server Error", 500)

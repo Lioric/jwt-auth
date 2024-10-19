@@ -140,7 +140,8 @@ func (c *credentials) updateAuthTokenFromRefreshToken() *jwtError {
 	}
 
 	// check if the refresh token has been revoked
-	if c.options.CheckTokenId(refreshTokenClaims.RegisteredClaims.ID) {
+	if c.options.CheckTokenId(refreshTokenClaims) {
+		// if c.options.CheckTokenId(refreshTokenClaims.RegisteredClaims.ID) {
 		c.myLog("Refresh token has not been revoked")
 		// has it expired?
 		if c.RefreshToken.Token.Valid {
