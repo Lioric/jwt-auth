@@ -462,3 +462,14 @@ func (a *Auth) GrabTokenClaims(r *http.Request) (ClaimsType, error) {
 
 	return *c.AuthToken.Token.Claims.(*ClaimsType), nil
 }
+
+func (a *Auth) GrabRefreshTokenClaims(r *http.Request) (ClaimsType, error) {
+	var c credentials
+	err := a.buildCredentialsFromRequest(r, &c)
+	if err != nil {
+		a.myLog("Err grabbing credentials \n" + err.Error())
+		return ClaimsType{}, errors.New(err.Error())
+	}
+
+	return *c.RefreshToken.Token.Claims.(*ClaimsType), nil
+}
