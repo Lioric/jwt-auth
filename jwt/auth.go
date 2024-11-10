@@ -471,5 +471,9 @@ func (a *Auth) GrabRefreshTokenClaims(r *http.Request) (ClaimsType, error) {
 		return ClaimsType{}, errors.New(err.Error())
 	}
 
+	if c.RefreshToken == nil {
+		return ClaimsType{}, errors.New("Empty refresh token")
+	}
+
 	return *c.RefreshToken.Token.Claims.(*ClaimsType), nil
 }
